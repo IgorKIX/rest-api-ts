@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "d3a34203-6dac-480e-8aac-0dce44241f83",
+    "_postman_id": "f6e50f2d-525e-4e69-af2d-c43eaf04ffb7",
     "name": "REST_API_test",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -45,7 +45,8 @@
                   "var jsonData = JSON.parse(responseBody);",
                   "console.log(jsonData)",
                   "pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
-                  "pm.collectionVariables.set(\"refreshToken\", jsonData.refreshToken);"
+                  "pm.collectionVariables.set(\"refreshToken\", jsonData.refreshToken);",
+                  ""
                 ],
                 "type": "text/javascript"
               }
@@ -176,6 +177,236 @@
               "path": [
                 "api",
                 "sessions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "item": [
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "postman.setEnvironmentVariable(\"productId\", jsonData.productId);",
+                  "",
+                  "",
+                  "const newAccessToken = responseHeaders['x-access-token']",
+                  "",
+                  "if(newAccessToken){",
+                  "    console.log('Set new access token')",
+                  "pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-refresh",
+                "value": "{{refreshToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Canon EOS 1500D DSLR Camera with 18-55mm Lens\",\n    \"description\": \"Designed for first-time DSLR owners who want impressive results straight out of the box, capture those magic moments no matter your level with the EOS 1500D. With easy to use automatic shooting modes, large 24.1 MP sensor, Canon Camera Connect app integration and built-in feature guide, EOS 1500D is always ready to go.\",\n    \"price\": 879.99,\n    \"image\": \"https://i.imgur.com/QlRphfQ.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{endpoint}}/api/products",
+              "host": [
+                "{{endpoint}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"A post title\",\n    \"body\": \"Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{endpoint}}/api/products/{{productId}}",
+              "host": [
+                "{{endpoint}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const newAccessToken = responseHeaders['x-access-token']",
+                  "",
+                  "if(newAccessToken){",
+                  "    console.log('Set new access token')",
+                  "pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-refresh",
+                "value": "{{refreshToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Canon EOS 1500D DSLR Camera with 18-55mm Lens\",\n    \"description\": \"Designed for first-time DSLR owners who want impressive results straight out of the box, capture those magic moments no matter your level with the EOS 1500D. With easy to use automatic shooting modes, large 24.1 MP sensor, Canon Camera Connect app integration and built-in feature guide, EOS 1500D is always ready to go.\",\n    \"price\": 699.99,\n    \"image\": \"https://i.imgur.com/QlRphfQ.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{endpoint}}/api/products/{{productId}}",
+              "host": [
+                "{{endpoint}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const newAccessToken = responseHeaders['x-access-token']",
+                  "",
+                  "if(newAccessToken){",
+                  "    console.log('Set new access token')",
+                  "pm.collectionVariables.set(\"accessToken\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-refresh",
+                "value": "{{refreshToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"A post title\",\n    \"body\": \"Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text Some HTML text\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{endpoint}}/api/products/{{productId}}",
+              "host": [
+                "{{endpoint}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
               ]
             }
           },
