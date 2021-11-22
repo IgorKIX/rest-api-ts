@@ -1,7 +1,7 @@
 import ProductModel, {ProductDocument} from "../models/product.model";
 import {DocumentDefinition, FilterQuery, QueryOptions, UpdateQuery} from "mongoose";
 
-export async function createProduct(input: DocumentDefinition<Omit<ProductDocument, "createdAd" | "updatedAd">>) {
+export async function createProduct(input: DocumentDefinition<Omit<ProductDocument, "createdAd" | "updatedAd" | "productId">>) {
     return ProductModel.create(input);
 }
 

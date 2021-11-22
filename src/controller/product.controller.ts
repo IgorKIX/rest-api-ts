@@ -1,63 +1,87 @@
 import {Request, Response} from "express";
-import {CreateProductInput, UpdateProductInput, ReadProductInput, DeleteProductInput} from "../schema/product.schema";
+import {CreateProductInput, DeleteProductInput, ReadProductInput, UpdateProductInput} from "../schema/product.schema";
 import {createProduct, deleteProduct, findAndUpdateProduct, findProduct} from "../service/product.service";
 import logger from "../utils/logger";
+import {tryToCatch} from "../utils/tryToCatch";
 
-export async function createProductHandler(req: Request<{}, {}, CreateProductInput["body"]>, res: Response) {
-    const userId = res.locals.user._id;
-    const body = req.body;
+export async function createProductHandler(
+	req: Request<{}, {}, CreateProductInput["body"]>,
+	res: Response,
+) {
+	const userId = res.locals.user._id;
 
-    try {
-        const product = await createProduct({...body, user: userId});
-        return res.send(product);
-    } catch (e:any) {
-        logger.error(e);
-        return res.status(409).send(e.message);
-    }
+	const body = req.body;
+
+	const [er, product] = await tryToCatch(createProduct, [{
+		...body,
+		user: userId,
+	}]);
+
+	if (er) {
+		logger.error(er);
+		return res.status(409).send(er.message);
+	}
+
+	return res.send(product);
 }
 
-export async function updateProductHandler(req: Request<UpdateProductInput["params"]>, res: Response) {
-    const userId = res.locals.user._id;
-    const productId = req.params.productId;
-    const update = req.body;
+export async function updateProductHandler(
+	req: Request<UpdateProductInput["params"]>,
+	res: Response,
+) {
+	const userId = res.locals.user._id;
+	const productId = req.params.productId;
+	const update = req.body;
 
-    const product = await findProduct({productId});
+	const [er, product] = await tryToCatch(findProduct, [{productId}]);
 
-    if (!product) return res.sendStatus(404);
-    if (String(product.user) !== userId) return res.sendStatus(403);
+	if (er) return res.sendStatus(404);
 
-    try {
-        const updatedProduct = await findAndUpdateProduct({productId}, update, {new: true});
-        return res.send(updatedProduct);
-    } catch (e:any) {
-        logger.error(e);
-        return res.status(409).send(e.message);
-    }
+	if (String(product.user) !== userId) return res.sendStatus(403);
+
+	const [err, updatedProduct] = await tryToCatch(findAndUpdateProduct, [
+		{productId},
+		update,
+		{new: true},
+	]);
+
+	if (err) {
+		logger.error(err);
+		return res.status(409).send(err.message);
+	}
+
+	return res.send(updatedProduct);
 }
 
 export async function getProductHandler(req: Request<ReadProductInput["params"]>, res: Response) {
-    const productId = req.params.productId;
-    const product = await findProduct({productId});
+	const productId = req.params.productId;
 
-    if (!product) return res.sendStatus(404);
+	const [er, product] = await tryToCatch(findProduct, [{productId}]);
 
-    return res.send(product);
+	if (er) return res.sendStatus(404);
+
+	return res.send(product);
 }
 
-export async function deleteProductHandler(req: Request<DeleteProductInput["params"]>, res: Response) {
-    const userId = res.locals.user._id;
-    const productId = req.params.productId;
+export async function deleteProductHandler(
+	req: Request<DeleteProductInput["params"]>,
+	res: Response,
+) {
+	const userId = res.locals.user._id;
+	const productId = req.params.productId;
 
-    const product = await findProduct({productId});
+	const [er, product] = await tryToCatch(findProduct, [{productId}]);
 
-    if (!product) return res.sendStatus(404);
-    if (String(product.user) !== userId) return res.sendStatus(403);
+	if (er) return res.sendStatus(404);
 
-    try {
-        await deleteProduct({productId});
-        return res.sendStatus(200);
-    } catch (e:any) {
-        logger.error(e);
-        return res.status(409).send(e.message);
-    }
+	if (String(product.user) !== userId) return res.sendStatus(403);
+
+	const [err] = await tryToCatch(deleteProduct, [{productId}]);
+
+	if (err) {
+		logger.error(err);
+		return res.status(409).send(err.message);
+	}
+
+	return res.sendStatus(200);
 }

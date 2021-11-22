@@ -3,15 +3,18 @@ import logger from "../utils/logger";
 import {createUser} from "../service/user.service";
 import {CreateUserInput} from "../schema/user.schema";
 import {omit} from "lodash";
+import {tryToCatch} from "../utils/tryToCatch";
 
-export async function createUserHandler(req: Request<{}, {}, CreateUserInput["body"]>, res: Response) {
-    try {
-        const user = await createUser(req.body);
+export async function createUserHandler(
+	req: Request<{}, {}, CreateUserInput["body"]>,
+	res: Response,
+) {
+	const [er, user] = await tryToCatch(createUser, [req.body]);
 
-        // Don't send the password back to frontend
-        return res.send(omit(user.toJSON(), "password"));
-    } catch (e: any) {
-        logger.error(e);
-        return res.status(409).send(e.message);
-    }
+	if (er) {
+		logger.error(er);
+		return res.status(409).send(er.message);
+	}
+
+	return res.send(omit(user, "password"));
 }

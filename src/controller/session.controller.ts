@@ -3,44 +3,59 @@ import {validatePassword} from "../service/user.service";
 import {createSession, findSessions, updateSession} from "../service/session.service";
 import {signJwt} from "../utils/jwt.utils";
 import config from "config";
+import {tryToCatch} from "../utils/tryToCatch";
+import logger from "../utils/logger";
 
 export async function createUserSessionHandler(req: Request, res: Response) {
-    // Validate user's password
-    const user = await validatePassword(req.body);
+	// Validate user's password
+	const [er, user] = await tryToCatch(validatePassword, [req.body]);
 
-    if (!user) return res.status(401).send("Invalid email or password");
+	if (er) return res.status(401).send("Invalid email or password");
+	// Create session
+	const [err, session] = await tryToCatch(createSession, [
+		user._id.toString(),
+		req.get("user-agent") || "",
+	]);
 
-    // Create session
-    const session = await createSession(user._id.toString(), req.get("user-agent") || "");
+	if (err) return res.status(500);
 
-    // Create access token
-    const accessToken = signJwt(
-        {...user, session: session._id}, {expiresIn: config.get("accessTokenTtl")}
-    )
+	// Create access token
+	const accessToken = signJwt(
+		{...user, session: session._id},
+		{expiresIn: config.get("accessTokenTtl")},
+	);
 
-    // Create refresh token
-    const refreshToken = signJwt(
-        {...user, session: session._id}, {expiresIn: config.get("refreshTokenTtl")}
-    )
+	// Create refresh token
+	const refreshToken = signJwt(
+		{...user, session: session._id},
+		{expiresIn: config.get("refreshTokenTtl")},
+	);
 
-    return res.send({accessToken, refreshToken});
+	return res.send({accessToken, refreshToken});
 }
 
 export async function getUserSessionsHandler(req: Request, res: Response) {
-    const userId = res.locals.user._id;
+	const userId = res.locals.user._id;
 
-    const sessions = await findSessions({user: userId, valid: true});
+	const [err, sessions] = await tryToCatch(findSessions, [{user: userId, valid: true}]);
 
-    return res.send(sessions);
+	if (err) return res.sendStatus(404);
+
+	return res.send(sessions);
 }
 
 export async function deleteSessionHandler(req: Request, res: Response) {
-    const sessionId = res.locals.user.session;
+	const sessionId = res.locals.user.session;
 
-    await updateSession({_id: sessionId}, {valid: false});
+	const [err] = await tryToCatch(updateSession, [{_id: sessionId}, {valid: false}]);
 
-    return res.send({
-        accessToken: null,
-        refreshToken: null,
-    });
+	if (err) {
+		logger.error(err);
+		return res.status(409).send(err.message);
+	}
+
+	return res.send({
+		accessToken: null,
+		refreshToken: null,
+	});
 }
